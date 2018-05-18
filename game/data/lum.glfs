@@ -1,0 +1,36 @@
+
+
+uniform vec2 centerLight;
+uniform vec2 screenSize;
+
+#define M_PI 3.1415926535897932384626433832795
+
+float distance(vec2 p1,vec2 p2){
+    return sqrt( (p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
+}
+
+void main(void)
+
+{
+	float gAlpha = 0;
+
+    vec4 loc;
+    loc[0] = centerLight.x;
+    loc[1] = centerLight.y;
+    loc[2] = gl_FragCoord.x;
+    loc[3] = screenSize.y-gl_FragCoord.y;
+    float dist = distance(loc.xy,loc.zw);
+
+    dist = 4.0 * M_PI *  6480.0 /  pow(dist,2.5) ;
+    dist = min(dist,1.0f);
+
+
+    dist = max(dist,0.0);
+    dist = min(dist,1.0);
+
+    gAlpha += dist; 
+	gAlpha = max(gAlpha,0.0);
+
+   	gl_FragColor = vec4(0, 0,0.0, gAlpha );
+
+}

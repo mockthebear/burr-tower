@@ -1,0 +1,143 @@
+#version 130
+uniform sampler2D myTexture;
+
+uniform vec2 screenSize;
+uniform vec4 light[127];
+uniform int lightPoints;
+
+uniform vec4 blockade[80];
+uniform int lightBlockades;
+uniform float minDark;
+
+
+
+float distance(vec2 p1,vec2 p2){
+	return sqrt( (p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
+}
+
+bool get_line_intersection(vec4 a,vec4 b){
+    vec2 s1,s2;
+    s1.x = a[2] - a[0];
+    s1.y = a[3] - a[1];
+    s2.x = b[2] - b[0];
+    s2.y = b[3] - b[1];
+
+    float s, t;
+
+    s = (-s1.y * (a[0] - b[0]) + s1.x * (a[1] - b[1])) / (-s2.x * s1.y + s1.x * s2.y);
+    t = ( s2.x * (a[1] - b[1]) - s2.y * (a[0] - b[0])) / (-s2.x * s1.y + s1.x * s2.y);
+
+    if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+    {
+        return true;
+    }
+
+    return false;
+}
+#define M_PI 3.1415926535897932384626433832795
+
+//xy zw
+bool SegmentIntersectRectangle(vec4 rectangle,
+        float p1X,
+        float p1Y,
+        float p2X,
+        float p2Y){
+        // Find min and max X for the segment
+        float minX = p1X;
+        float maxX = p2X;
+
+        if (p1X > p2X){
+            minX = p2X;
+            maxX = p1X;
+        }
+
+
+        if (maxX > rectangle.z) {
+            maxX = rectangle.z;
+        }
+
+        if (minX < rectangle.x){
+            minX = rectangle.x;
+        }
+
+        if (minX > maxX){
+            return false;
+        }
+
+
+        float minY = p1Y;
+        float maxY = p2Y;
+
+        float dx = p2X - p1X;
+
+        if (abs(dx) > 0.0000001){
+            float a = (p2Y - p1Y)/dx;
+            float b = p1Y - a*p1X;
+            minY = a*minX + b;
+            maxY = a*maxX + b;
+        }
+
+        if (minY > maxY){
+            float tmp = maxY;
+            maxY = minY;
+            minY = tmp;
+        }
+
+        if (maxY > rectangle.w){
+            maxY = rectangle.w;
+        }
+
+        if (minY < rectangle.y) {
+            minY = rectangle.y;
+        }
+
+        if (minY > maxY) {
+            return false;
+        }
+
+        return true;
+    }
+
+
+void main(void)
+
+{
+	float gAlpha = minDark;
+
+	for (int i=0;i<min(127,lightPoints);i++){
+		if (light[i].w > 0){
+			bool canProceed = true;
+			vec4 loc;
+			loc[0] = light[i].x;
+			loc[1] = light[i].y;
+			loc[2] = gl_FragCoord.x;
+			loc[3] = screenSize.y-gl_FragCoord.y;
+			float dist = distance(loc.xy,loc.zw);
+
+			//dist *= pow(light[i].w,2.0f);
+			dist = 4.0 * M_PI *  light[i].z /  pow(dist,2.0f) ;
+			dist = 1.0f - min(dist,light[i].w);
+
+			dist = max(dist,0.0f);
+	  		dist = min(dist,1.0f);
+
+			if (dist < 1.0f){
+				gAlpha *= dist;
+				/*for (int e=0;e<lightBlockades;e++){
+					if (SegmentIntersectRectangle(blockade[e],light[i].x,light[i].y,loc[2],loc[3])){
+						canProceed = false;
+						break;
+					}
+				}
+				if (canProceed){				
+				   	gAlpha *= dist;
+			   	}*/
+		   	}
+		}
+	}
+
+	gAlpha = max(gAlpha,0.0f);
+  	gAlpha = min(gAlpha,minDark);
+   	gl_FragColor = vec4(0.0f,0.0f,0.0f,gAlpha );
+
+}

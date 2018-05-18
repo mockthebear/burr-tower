@@ -1,0 +1,22 @@
+uniform vec2 resolution;
+varying vec4 vTexCoord;
+uniform sampler2D texture;
+
+
+
+void main() {  
+ 
+	vec4 avgValue = vec4(0.0, 0.0, 0.0, 0.0);
+
+	avgValue += texture2D(texture, vTexCoord.xy + vec2(-1.0, -1.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2( 0.0, -1.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2( 1.0, -1.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2( 1.0,  0.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2( 1.0,  1.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2( 0.0,  1.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2(-1.0,  1.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2(-1.0,  0.0)/resolution);     
+	avgValue += texture2D(texture, vTexCoord.xy + vec2( 0.0,  0.0)/resolution);
+
+	gl_FragColor = avgValue * 0.125;
+}
